@@ -1,42 +1,44 @@
+using example.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace example.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/v1/person")]
 public class PersonController : ControllerBase
 {
-    private static readonly List<string>? _names = new List<string>();
+    private readonly PersonService _personService;
 
-    private readonly ILogger<WeatherForecastController> _logger;
+    private readonly ILogger<PersonController> _logger;
 
-    public PersonController(ILogger<WeatherForecastController> logger)
+    public PersonController(ILogger<PersonController> logger, PersonService personService)
     {
         _logger = logger;
+        _personService = personService;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<string>> Get([FromQuery] string name)
+    public async Task<ActionResult<List<PersonGetDTO>>> GetPeople()
     {
-        return Ok(_names.Where(x => x == name));
+        var people = await _personService.GetAllPeople();
+
+        return Ok(people);
     }
 
-    [HttpGet("name/{name}")]
-    public ActionResult<IEnumerable<string>> GetName([FromRoute] string name)
+    [HttpGet("name/{id}")]
+    public async Task<ActionResult<PersonGetDTO>> GetPerson([FromRoute] Guid id)
     {
-        return Ok(_names.Where(x => x == name));
+        var person = await _personService.GetPerson(id);
+        Console.WriteLine(person.Name);
+        return Ok(person);
     }
 
     [HttpPost]
-    public ActionResult<List<string>> CreatePerson([FromBody] PersonData data)
+    public async Task<ActionResult<PersonGetDTO>> CreatePerson([FromBody] PersonPostDTO personDTO)
     {
-        _names.Add(data.Name);
+        var person = await _personService.CreatePerson(personDTO);
 
-        return Ok(_names);
+
+        return Ok(person);
     }
-}
-
-public class PersonData
-{
-    public string? Name { get; set; }
 }
